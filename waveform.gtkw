@@ -1,0 +1,76 @@
+[*]
+[*] GTKWave Analyzer v3.3.107 (w)1999-2020 BSI
+[*] Fri Mar 15 04:18:06 2024
+[*]
+[dumpfile] "/Users/dan/Projects/rtl-dds/top.vcd"
+[dumpfile_mtime] "Fri Mar 15 04:03:35 2024"
+[dumpfile_size] 495828317
+[savefile] "/Users/dan/Projects/rtl-dds/waveform.gtkw"
+[timestart] 127000000
+[size] 1609 865
+[pos] -1 -1
+*-29.011921 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] uut.
+[treeopen] uut.demodulator.
+[treeopen] uut.demodulator.mark_pipeline.env_buffer.
+[sst_width] 193
+[signals_width] 255
+[sst_expanded] 1
+[sst_vpaned_height] 258
+@200
+-Modulator
+@28
++{mark (uart rx)} uut.modulator.mark_in
+@8420
++{phase accumulator} uut.modulator.dds.phase_accumulator.ramp[7:0]
++{dds} uut.modulator.data_out[15:0]
+@200
+-Mixer
+@8420
++{lo} uut.demodulator.lo.data_out[15:0]
++{mixed} uut.demodulator.mixer.data_out[15:0]
+@200
+-LPF & Downsample
+@8420
++{first lpf} uut.demodulator.lpf_down_1.fir_buffer.data_out[15:0]
++{first 4x downsample} uut.demodulator.lpf_down_1.downsample.data_out[15:0]
++{second lpf} uut.demodulator.lpf_down_2.fir_buffer.data_out[15:0]
+@c08421
++{second 4x downsample} uut.demodulator.lpf_down_2.downsample.data_out[15:0]
+@28
+(0)uut.demodulator.lpf_down_2.downsample.data_out[15:0]
+(1)uut.demodulator.lpf_down_2.downsample.data_out[15:0]
+(2)uut.demodulator.lpf_down_2.downsample.data_out[15:0]
+(3)uut.demodulator.lpf_down_2.downsample.data_out[15:0]
+(4)uut.demodulator.lpf_down_2.downsample.data_out[15:0]
+(5)uut.demodulator.lpf_down_2.downsample.data_out[15:0]
+(6)uut.demodulator.lpf_down_2.downsample.data_out[15:0]
+(7)uut.demodulator.lpf_down_2.downsample.data_out[15:0]
+(8)uut.demodulator.lpf_down_2.downsample.data_out[15:0]
+(9)uut.demodulator.lpf_down_2.downsample.data_out[15:0]
+(10)uut.demodulator.lpf_down_2.downsample.data_out[15:0]
+(11)uut.demodulator.lpf_down_2.downsample.data_out[15:0]
+(12)uut.demodulator.lpf_down_2.downsample.data_out[15:0]
+(13)uut.demodulator.lpf_down_2.downsample.data_out[15:0]
+(14)uut.demodulator.lpf_down_2.downsample.data_out[15:0]
+(15)uut.demodulator.lpf_down_2.downsample.data_out[15:0]
+@1401201
+-group_end
+@200
+-Space Pipeline
+@8420
++{bpf} uut.demodulator.space_pipeline.fir_buffer.data_out[15:0]
++{abs} uut.demodulator.space_pipeline.abs.data_out[15:0]
++{envelope} uut.demodulator.space_pipeline.env_buffer.data_out[15:0]
+@200
+-Mark Pipeline
+@8420
++{bpf} uut.demodulator.mark_pipeline.fir_buffer.data_out[15:0]
++{abs} uut.demodulator.mark_pipeline.abs.data_out[15:0]
++{envelope} uut.demodulator.mark_pipeline.env_buffer.data_out[15:0]
+@200
+-Decider
+@28
++{mark (uart tx)} uut.demodulator.decider.mark_out
+[pattern_trace] 1
+[pattern_trace] 0

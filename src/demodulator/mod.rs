@@ -1,63 +1,104 @@
+mod abs;
+mod decider;
 mod decimator;
-
-use std::time::Duration;
+mod lpf_downsample;
+mod single_pole_recursive_lpf;
+mod symbol_pipeline;
 
 use rust_hdl::prelude::*;
 
-use crate::bsp::pins;
-use crate::fir::FIR;
+use crate::dds::DDS24_8;
 use crate::mixer::Mixer;
+use crate::square_wave_mixer::SquareWaveMixer;
 
-use self::decimator::Decimator;
+use self::decider::Decider;
+use self::lpf_downsample::LpfDownsample;
+use self::symbol_pipeline::SymbolPipeline;
 
 #[derive(LogicBlock)]
 pub struct Demodulator {
     pub clock: Signal<In, Clock>,
-    pub signal_in: Signal<In, Bits<16>>,
+    pub data_in: Signal<In, Signed<16>>,
+    pub strobe_in: Signal<In, Bit>,
     pub mark_out: Signal<Out, Bit>,
-    lo: Pulser,
-    decimator: Decimator<7>,
+    lo: DDS24_8,
     mixer: Mixer,
-    fir: FIR<4>,
+    lpf_down_1: LpfDownsample,
+    lpf_down_2: LpfDownsample,
+    space_pipeline: SymbolPipeline,
+    mark_pipeline: SymbolPipeline,
+    decider: Decider,
 }
 
 impl Logic for Demodulator {
     #[hdl_gen]
     fn update(&mut self) {
         // dff_setup!(self, clock);
-        clock!(self, clock, decimator, lo, fir);
+        clock!(
+            self,
+            clock,
+            lo,
+            mixer,
+            lpf_down_1,
+            lpf_down_2,
+            space_pipeline,
+            mark_pipeline,
+            decider
+        );
 
-        self.lo.enable.next = true;
+        self.lo.mark.next = false;
 
-        self.mixer.signal_in_1.next = self.signal_in.val();
-        self.mixer.signal_in_2.next = self.lo.pulse.val();
+        self.mixer.data_in_1.next = self.data_in.val();
+        self.mixer.data_in_2.next = self.lo.data_out.val();
+        self.mixer.strobe_in.next = self.strobe_in.val();
 
-        self.fir.signal_in.next = self.mixer.signal_out.val();
-        self.decimator.signal_in.next = self.fir.signal_out.val();
+        self.lpf_down_1.data_in.next = self.mixer.data_out.val();
+        self.lpf_down_1.strobe_in.next = self.mixer.strobe_out.val();
 
-        self.mark_out.next = self.decimator.signal_out.val().get_bit(15);
+        self.lpf_down_2.data_in.next = self.lpf_down_1.data_out.val();
+        self.lpf_down_2.strobe_in.next = self.lpf_down_1.strobe_out.val();
+
+        self.space_pipeline.data_in.next = self.lpf_down_2.data_out.val();
+        self.space_pipeline.strobe_in.next = self.lpf_down_2.strobe_out.val();
+
+        self.mark_pipeline.data_in.next = self.lpf_down_2.data_out.val();
+        self.mark_pipeline.strobe_in.next = self.lpf_down_2.strobe_out.val();
+
+        self.decider.space_data_in.next = self.space_pipeline.data_out.val();
+        self.decider.space_strobe_in.next = self.space_pipeline.strobe_out.val();
+
+        self.decider.mark_data_in.next = self.mark_pipeline.data_out.val();
+        self.decider.mark_strobe_in.next = self.mark_pipeline.strobe_out.val();
+
+        self.mark_out.next = self.decider.mark_out.val();
     }
 }
 
 impl Default for Demodulator {
     fn default() -> Self {
+        let space = [
+            3282, -7600, -4068, -2376, -919, 559, 1705, 2133, 1705, 559, -919, -2376, -4068, -7600,
+            3282,
+        ];
+
+        // HPF
+        let mark = [
+            -2857, 2073, 2905, 3169, 1906, -1043, -4854, -8070, 23442, -8070, -4854, -1043, 1906,
+            3169, 2905, 2073, -2857,
+        ];
+
         Self {
             clock: Signal::default(),
-            signal_in: Signal::default(),
+            data_in: Signal::default(),
+            strobe_in: Signal::default(),
             mark_out: Signal::default(),
-            decimator: Decimator::new(79),
-            lo: Pulser::new(
-                pins::CLOCK_SPEED_48MHZ,
-                299_000.0,
-                Duration::from_nanos(1_000_000_000 / 299_000 / 2),
-            ),
+            lo: DDS24_8::new(2_042_626, 2_042_626),
             mixer: Mixer::default(),
-            // fir: FIR::new([1164, 3492, 6111, 7274, 6111, 3492, 1164]),
-            // fir: FIR::new([
-            //     -256, -223, -223, -115, 141, 570, 1168, 1896, 2688, 3452, 4090, 4514, 4662, 4514,
-            //     4090, 3452, 2688, 1896, 1168, 570, 141, -115, -223, -223, -256,
-            // ]),
-            fir: FIR::new([0x2000, 0x2000, 0x2000, 0x2000]),
+            lpf_down_1: LpfDownsample::default(),
+            lpf_down_2: LpfDownsample::default(),
+            space_pipeline: SymbolPipeline::new(&space),
+            mark_pipeline: SymbolPipeline::new(&mark),
+            decider: Decider::default(),
         }
     }
 }

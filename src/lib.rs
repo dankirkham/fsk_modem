@@ -1,7 +1,12 @@
 pub mod bsp;
+pub mod buffer;
 pub mod dds;
 pub mod demodulator;
 pub mod fir;
+pub mod fixed_point_round;
 pub mod mac;
 pub mod mixer;
 pub mod modem;
+pub mod modulator;
+pub mod moving_average;
+pub mod square_wave_mixer;

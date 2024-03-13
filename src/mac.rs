@@ -3,10 +3,10 @@ use rust_hdl::prelude::*;
 #[derive(LogicBlock)]
 pub struct MAC {
     pub clock: Signal<In, Clock>,
-    pub a: Signal<In, Bits<16>>,
-    pub b: Signal<In, Bits<16>>,
-    pub c: Signal<In, Bits<32>>,
-    pub prod: Signal<Out, Bits<32>>,
+    pub a: Signal<In, Signed<16>>,
+    pub b: Signal<In, Signed<16>>,
+    pub c: Signal<In, Signed<32>>,
+    pub prod: Signal<Out, Signed<32>>,
 }
 
 impl Logic for MAC {
