@@ -33,7 +33,7 @@ pub fn generate_bitstream<U: Block>(mut uut: U, prefix: &str) {
     println!("Running yosys...");
     let output = Command::new("yosys")
         .current_dir(dir.clone())
-        .arg(r#"-p read_verilog top.v; synth_ice40 -top top -json top.json"#)
+        .arg(r#"-p read_verilog top.v; synth_ice40 -dsp -top top -json top.json"#)
         .output()
         .unwrap();
     save_stdout(output, &dir, "yosys_synth").unwrap();

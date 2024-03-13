@@ -1,18 +1,15 @@
 use rust_hdl::prelude::*;
 
-use crate::fixed_point_round::FixedPointRound;
-
 #[derive(Clone, Debug, LogicState, Copy, PartialEq)]
 enum MixerState {
     Idle,
     Dwell,
     Compute,
-    Round,
     Done,
 }
 
 #[derive(LogicBlock)]
-pub struct Mixer {
+pub struct SquareWaveMixer {
     pub clock: Signal<In, Clock>,
     pub data_in_1: Signal<In, Signed<16>>,
     pub data_in_2: Signal<In, Signed<16>>,
@@ -21,21 +18,23 @@ pub struct Mixer {
     pub strobe_out: Signal<Out, Bit>,
     data_1: DFF<Signed<16>>,
     data_2: DFF<Signed<16>>,
-    output_round: FixedPointRound<32>,
     state: DFF<MixerState>,
+    one: Constant<Signed<16>>,
+    max: Constant<Signed<16>>,
 }
 
-impl Logic for Mixer {
+impl Logic for SquareWaveMixer {
     #[hdl_gen]
     fn update(&mut self) {
-        clock!(self, clock, output_round);
         dff_setup!(self, clock, data_1, data_2, state);
 
-        self.output_round.data_in.next = self.data_1.q.val() * self.data_2.q.val();
-        self.data_out.next = self.output_round.data_out.val();
+        if self.data_1.q.val().get_bit(15) ^ self.data_2.q.val().get_bit(15) {
+            self.data_out.next = 0xffff.into();
+        } else {
+            self.data_out.next = 0x0000.into();
+        }
 
         self.strobe_out.next = false;
-        self.output_round.strobe_in.next = false;
         match self.state.q.val() {
             MixerState::Idle => {
                 if self.strobe_in.val() {
@@ -49,10 +48,6 @@ impl Logic for Mixer {
                 self.state.d.next = MixerState::Compute;
             }
             MixerState::Compute => {
-                self.state.d.next = MixerState::Round;
-            }
-            MixerState::Round => {
-                self.output_round.strobe_in.next = true;
                 self.state.d.next = MixerState::Done;
             }
             MixerState::Done => {
@@ -63,7 +58,7 @@ impl Logic for Mixer {
     }
 }
 
-impl Default for Mixer {
+impl Default for SquareWaveMixer {
     fn default() -> Self {
         Self {
             clock: Signal::default(),
@@ -75,7 +70,8 @@ impl Default for Mixer {
             data_1: DFF::default(),
             data_2: DFF::default(),
             state: DFF::default(),
-            output_round: FixedPointRound::default(),
+            one: Constant::new(1.into()),
+            max: Constant::new(0xffff.into()),
         }
     }
 }
