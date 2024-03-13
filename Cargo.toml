@@ -1,0 +1,10 @@
+[package]
+name = "rtl-dds"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+array-init = "2.1.0"
+rust-hdl = { version = "0.46.0", features = ["fpga"] }
