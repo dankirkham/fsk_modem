@@ -12,26 +12,26 @@
 = Introduction
 A frequency-shift keying (FSK) modulator and demodulator is outlined, designed,
 simulated, verified, and ultimately executed on FPGA hardware. The design utilizes
-direct digital sythesis (DDS) and uses several different finite impulse
+direct digital synthesis (DDS) and uses several different finite impulse
 response (FIR) filter designs.
 
 For hardware, a Lattice iCE40 UP5K is used. This features 5280 LUTS, 30
-block RAMs, and only 8 16x16 multipy-accumulate DSP slices (compared to a Xilinx
+block RAMs, and only 8 16x16 multiply-accumulate DSP slices (compared to a Xilinx
 Zynq RFSoC, which is typically around 5000).
 
 The design is implemented using RustHDL. RustHDL is a HDL environment that
-leverage's Rust strong static typing system that catches many potential bugs
+leverages Rust's strong static typing system that catches many potential bugs
 at compile time. RustHDL will generate lower level Verilog code, which can be
 fed into the desired synthesis tool. RustHDL also ships with many useful cores,
 such as a rolled FIR implementation that uses a single hardware
-mutlipy-accumulate (MAC). The Yosys toolchain this used to synthesize this
+multiply-accumulate (MAC). The Yosys toolchain this used to synthesize this
 design infers the DSP slice automatically.
 
 The source code for this project can be found at http://github.com/dankirkham/fsk_modem
 
 = Design Overview
 A UART is used to receive a binary signal and modulate it with FSK.
-Since this is just for demonstration of the FPGA signal chain, the generated
+Since this is just a demonstration of the FPGA signal chain, the generated
 samples forgo digital-to-analog and analog-to-digital conversion. The samples are
 looped directly back into the demodulator. The signal is demodulated
 back to a TTL UART signal and is transmitted back to the original sender.
@@ -58,7 +58,7 @@ $ f_o = frac(M * f_c, 2^N) $ <fout>
 === Tuning Word Selection
 A 307.2 kHz and 316.8 kHz are arbitrarily chosen for the space and mark frequency,
 respectively. Because they are 9600 Hz apart, this can support a
-baudrate of a UART, 9600 Hz. 307.2 kHz is both a integer divisor of the DDS
+baudrate of a UART, 9600 Hz. 307.2 kHz is both an integer divisor of the DDS
 reference clock frequency of 2.4 MHz and a multiple of the baudrate.
 The tuning word, M, can be found with @tuning, which is a form of @fout:
 $ M = frac(f_o * 2^N, f_c) $ <tuning>
@@ -71,14 +71,14 @@ $ M = frac("316.8 kHz" * 2^24, "2.4 MHz") = 2,214,592 $
 ) <modulation>
 
 == Demodulator
-The demodulation design used here is an example a filter-type FSK demodulator.
+The demodulation design used here is an example of a filter-type FSK demodulator.
 The signal is filtered with two separate band-pass or matched filters, one for
 the space and one for the mark. The resultant signals are envelope filtered and
-then the magnitude is compared. The symbol with the greater maginitude is output
+then the magnitude is compared. The symbol with the greater magnitude is output
 by the decider.
 
 === Mixer
-To make the sample rate slower and easier to work with it will be heterodyned to a
+To make the sample rate slower and easier to work with, it will be heterodyned to a
 lower intermediate frequency (IF). This IF must be higher than the symbol rate of
 9600 Hz. In this case, 15 kHz will be used. The local oscillator (LO) frequency
 is selected using @lo, which ends up being 292.2 kHz. The mixer is implemented
@@ -116,8 +116,8 @@ the filters in @space and @mark, respectively. A design concern is prevention
 of intersymbol interference, thus the maximum kernel length for each FIR filter
 should only be able to fit a single FSK symbol interval inside of it.
 Therefore, these band-pass filters should be limited to 15 elements or less, as
-shown in @samples. Improvement of these filters could come from pipelining
-multiple filters together, but due to the limited amount of MACs available on
+shown in @samples. Improvements to these filters could come from pipelining
+multiple filters together, but due to the limited number of MACs available on
 the target device, this has not been done.
 $ "150 kHz" / "9600 Hz" = "15.65 samples" $ <samples>
 
@@ -127,7 +127,7 @@ absolute-valued signal. After this, they are low pass-filtered using the filter
 in @envelope.
 
 === Decider
-The decider simply compares the value of the two envelope detectors and outputs
+The decider simply compares the values of the two envelope detectors and outputs
 the bit corresponding to the envelope of greater magnitude.
 
 #figure(
@@ -145,12 +145,12 @@ the bit corresponding to the envelope of greater magnitude.
 
 #pagebreak()
 == Simulation
-The design was simulated and the output waveforms can be seen in @sim_wf.
+The design was simulated, and the output waveforms can be seen in @sim_wf.
 The "mark (uart rx)" line represents the bit going into the modulator. For
 simulation, this was randomly varied at the 9600 Hz baudrate. The "mixed" line
 is the signal coming out of the mixer. The 15 kHz and 25 kHz signals can be
 seen riding on top of the much higher frequency harmonics. These harmonics are
-filtered out and the signal is downsampled in the "LPF & Downsample" section.
+filtered out, and the signal is downsampled in the "LPF & Downsample" section.
 After this, the signal branches off into both the "Space Pipeline" and the
 "Mark Pipeline". These envelopes are demonstrated to be the opposite of one
 another. These envelopes are then compared by the decider. The "mark (uart tx)"
@@ -198,6 +198,6 @@ interface. @scope shows this captured with an oscilloscope.
 #figure( image("scope.png"),
   caption: [
 	Oscilloscope capture of loopback of the 'a' character (0x61, 0b0110_0001).
-	Not that UART is LSB first. Pink trace is UART RX, blue trace is UART TX
+	Note that UART is LSB first. Pink trace is UART RX, blue trace is UART TX
 	],
 ) <scope>

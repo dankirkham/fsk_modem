@@ -1,6 +1,10 @@
+.PHONY: sim
+sim:
+	cargo run --release --bin sim
+
 .PHONY: synth
 synth:
-	cargo run --bin synth && say synthesis done
+	cargo run --bin synth
 
 .PHONY: program
 program:
@@ -13,4 +17,5 @@ quartus:
 .PHONY: docs
 docs:
 	cd docs/ && make clean && make
+	cp docs/build/fsk.pdf fsk_modem.pdf
 
